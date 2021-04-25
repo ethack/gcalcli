@@ -1602,6 +1602,18 @@ class GoogleCalendarInterface:
                 self.printer.err_msg('Error: ' + str(e) + '!\n')
                 sys.exit(1)
 
+        # Clear calendar first
+        print(self.cals[0]['id'])
+        return True
+        self._retry_with_backoff(
+            self.get_cal_service()
+                .calendars()
+                .clear(
+                    calendarId=self.cals[0]['id']
+                )
+        )
+        return True
+
         while True:
             try:
                 v = next(vobject.readComponents(f))
