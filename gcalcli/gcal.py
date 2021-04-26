@@ -1603,16 +1603,21 @@ class GoogleCalendarInterface:
                 sys.exit(1)
 
         # Clear calendar first
-        print(self.cals[0]['id'])
-        return True
-        self._retry_with_backoff(
-            self.get_cal_service()
-                .calendars()
-                .clear(
-                    calendarId=self.cals[0]['id']
-                )
-        )
-        return True
+        # get all events in the calendar
+        # TODO: don't use the single-event option. faster to delete series
+        events = self._search_for_events(None, None, None)
+        # delete all events in the calendar
+        calendarId=self.cals[0]['id']
+        # TODO: preserve/restore expert if needed
+        #expert = self.expert
+        self.expert = True
+        # TODO: even after looping through all events it didn't delete them all
+        # it took running this twice to get them all
+        for event in events:
+            # be double-sure we're only deleting events from the specified calendar
+            if event['gcalcli_cal']['id'] == calendarId:
+                self._delete_event(event)
+        #self.expert = expert
 
         while True:
             try:
@@ -1630,7 +1635,7 @@ class GoogleCalendarInterface:
                     continue
 
                 if not verbose:
-                    new_event = self._retry_with_backoff(
+                    new_event = self._retry_with_backoff(   
                                     self.get_cal_service()
                                         .events()
                                         .insert(
